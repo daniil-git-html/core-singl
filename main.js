@@ -46,14 +46,16 @@
      Фоновая музыка: умеренная громкость, зацикленная, играет пока
      пользователь на сайте или пока не выключит кнопкой. Браузеры
      блокируют автовоспроизведение со звуком без жеста пользователя,
-     поэтому запуск происходит по первому касанию/клику на странице.
-     Если файла assets/theme.mp3 нет — кнопка просто ничего не делает,
-     без ошибок в остальной части сайта.
+     поэтому запуск привязан к нажатию на стартовую кнопку интро
+     (см. initStartGate) — она и есть тот самый жест. После этого
+     доступен обычный ручной тумблер вкл/выкл.
+     Если файла assets/paranoid.mp3 (или theme.mp3) нет — кнопка
+     просто ничего не делает, без ошибок в остальной части сайта.
      --------------------------------------------------------------- */
   function initMusic() {
     const audio = document.getElementById('bg-music');
     const btn = document.getElementById('btn-music');
-    if (!audio || !btn) return;
+    if (!audio || !btn) return { start: () => {} };
 
     audio.volume = 0.35;
     let musicOn = false;
@@ -109,13 +111,6 @@
         .catch(() => { musicOn = false; updateBtn(); }); // нет файла или автозапуск заблокирован — тихо игнорируем
     }
 
-    // Первый жест пользователя на странице — пробуем запустить музыку.
-    function firstGesture() {
-      attemptPlay();
-      window.removeEventListener('pointerdown', firstGesture);
-    }
-    window.addEventListener('pointerdown', firstGesture, { once: true });
-
     btn.addEventListener('click', () => {
       if (musicOn) {
         audio.pause();
@@ -130,6 +125,24 @@
     });
 
     updateBtn();
+
+    // start() вызывается из стартовой кнопки интро — это и есть
+    // пользовательский жест, разрешающий автовоспроизведение со звуком.
+    return { start: attemptPlay };
+  }
+
+  /* ---------------------------------------------------------------
+     Стартовый экран интро: одна кнопка одновременно включает музыку
+     (по умолчанию, как и просили — сразу вкл) и запускает саму
+     последовательность интро.
+     --------------------------------------------------------------- */
+  function initStartGate(startMusic) {
+    const gateBtn = document.getElementById('btn-start-scan');
+    if (!gateBtn) return;
+    gateBtn.addEventListener('click', () => {
+      startMusic();
+      IntroFX.start();
+    }, { once: true });
   }
 
   /* ---------------------------------------------------------------
@@ -201,7 +214,7 @@
     Terminal.init();
     initTerminalOpen();
     initScrollObserver();
-    initMusic();
+    const music = initMusic();
     initScanProgress();
     initDevModeEasterEgg();
 
@@ -210,6 +223,7 @@
     }, { once: true });
 
     IntroFX.init();
+    initStartGate(music.start);
   }
 
   if (document.readyState === 'loading') {

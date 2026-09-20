@@ -306,7 +306,21 @@ const IntroFX = (() => {
   }
 
   function init() {
+    // Подготовка: вешаем обработчик кнопки "Пропустить" заранее, но
+    // саму последовательность интро не запускаем — она стартует по
+    // явному нажатию на кнопку запуска (start()), см. стартовый экран.
     document.getElementById('btn-skip').addEventListener('click', skip);
+  }
+
+  function start() {
+    if (document.body.classList.contains('intro-started')) return;
+    document.body.classList.add('intro-started');
+    // Стартовый экран (стадия 00) больше не нужен — снимаем его
+    // активность на всякий случай (run() тоже уберёт его через
+    // showStage('01'), это подстраховка).
+    const gate = document.getElementById('stage-00');
+    if (gate) gate.classList.remove('is-active');
+
     // Любая непредвиденная ошибка в run() не должна оставлять страницу
     // заблокированной интро-слоем — при сбое доводим до финального
     // состояния в любом случае.
@@ -325,5 +339,5 @@ const IntroFX = (() => {
     }, 20000);
   }
 
-  return { init, skip };
+  return { init, start, skip };
 })();

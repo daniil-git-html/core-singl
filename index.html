@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
@@ -56,6 +56,19 @@
      ИНТРО
      ============================================================ -->
 <div id="intro" class="intro" aria-hidden="false">
+
+  <!-- СТАДИЯ 00 — СТАРТОВЫЙ ЭКРАН: запускает интро и музыку одним жестом -->
+  <section class="intro-stage is-active" data-stage="00" id="stage-00">
+    <div class="gate-content">
+      <div class="signal-point"></div>
+      <span class="gate-brand mono">CORE.SINGL</span>
+      <button id="btn-start-scan" class="gate-btn">
+        <span>ЗАПУСТИТЬ ПОИСК ОПЕРАТОРА</span>
+        <span class="gate-btn-icon">♪</span>
+      </button>
+      <p class="intro-line intro-line--dim">нажмите, чтобы начать сканирование и включить звук</p>
+    </div>
+  </section>
 
   <!-- СТАДИЯ 01 — ОБНАРУЖЕНИЕ СИГНАЛА -->
   <section class="intro-stage" data-stage="01" id="stage-01">
@@ -295,11 +308,11 @@
   <source src="assets/theme.mp3" type="audio/mpeg">
 </audio>
 
-<script src="data.js?v=10"></script>
-<script src="core.js?v=10"></script>
-<script src="intro.js?v=10"></script>
-<script src="modules.js?v=10"></script>
-<script src="terminal.js?v=10"></script>
-<script src="main.js?v=10"></script>
+<script src="data.js?v=11"></script>
+<script src="core.js?v=11"></script>
+<script src="intro.js?v=11"></script>
+<script src="modules.js?v=11"></script>
+<script src="terminal.js?v=11"></script>
+<script src="main.js?v=11"></script>
 </body>
 </html>
