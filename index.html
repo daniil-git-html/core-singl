@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>CORE.SINGL — Персональный интерфейс оператора</title>
+<meta name="description" content="CORE.SINGL — персональный интерфейс оператора. Профиль, показатели, навыки, инженерия, проекты, связи.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2240%22 fill=%22none%22 stroke=%22%2300e5ff%22 stroke-width=%228%22/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=10">
+</head>
+<body>
+
+<!-- ============================================================
+     ФОНОВАЯ СИСТЕМА — чертёж силуэта + частицы + сетка
+     ============================================================ -->
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+<canvas id="blueprint-canvas" aria-hidden="true"></canvas>
+<canvas id="trail-canvas" aria-hidden="true"></canvas>
+<div class="bg-grid" aria-hidden="true"></div>
+<div class="bg-vignette" aria-hidden="true"></div>
+
+<!-- Полоса прогресса сканирования — показывает, докуда пролистана страница -->
+<div class="scan-progress" id="scan-progress" aria-hidden="true">
+  <div class="scan-progress-track">
+    <div class="scan-progress-fill" id="scan-progress-fill"></div>
+  </div>
+  <span class="scan-progress-label mono" id="scan-progress-label">SCAN 0%</span>
+</div>
+
+<!-- Скрытый режим отладки — пасхалка -->
+<div class="dev-mode-overlay" id="dev-mode-overlay" aria-hidden="true">
+  <div class="dev-mode-grid"></div>
+  <div class="dev-mode-tag" style="top:12%; left:8%">X:0128 Y:0044</div>
+  <div class="dev-mode-tag" style="top:34%; right:10%">NODE_OK</div>
+  <div class="dev-mode-tag" style="bottom:28%; left:14%">LAT:0.02s</div>
+  <div class="dev-mode-tag" style="bottom:10%; right:12%">RENDER_60FPS</div>
+  <div class="dev-mode-label mono">DEV MODE</div>
+</div>
+
+<!-- ============================================================
+     СЛУЖЕБНЫЕ ЭЛЕМЕНТЫ (верхний слой)
+     ============================================================ -->
+<div class="sys-controls" role="toolbar" aria-label="Управление системой">
+  <button id="btn-music" class="sys-btn" aria-pressed="false" title="Включить/выключить музыку">
+    <span class="sys-btn-icon">♪</span><span class="sys-btn-label">МУЗЫКА</span>
+  </button>
+  <button id="btn-skip" class="sys-btn sys-btn-skip" title="Пропустить интро">
+    ПРОПУСТИТЬ ИНТРО
+  </button>
+</div>
+
+<!-- ============================================================
+     ИНТРО
+     ============================================================ -->
+<div id="intro" class="intro" aria-hidden="false">
+
+  <!-- СТАДИЯ 01 — ОБНАРУЖЕНИЕ СИГНАЛА -->
+  <section class="intro-stage" data-stage="01" id="stage-01">
+    <div class="signal-point"></div>
+    <p class="intro-line intro-line--wide" data-text="СИГНАЛ СИСТЕМЫ ОБНАРУЖЕН"></p>
+    <p class="intro-line intro-line--dim" data-text="ЗАПУСК ПРОТОКОЛА ОБНАРУЖЕНИЯ..."></p>
+  </section>
+
+  <!-- СТАДИЯ 02 — ПОИСК / АНАЛИЗ (окна + терминал + голофигура) -->
+  <section class="intro-stage" data-stage="02" id="stage-02">
+    <div class="intro-terminal" id="intro-terminal">
+      <div class="intro-terminal-head">
+        <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
+        <span class="intro-terminal-title">ПРОТОКОЛ ОБНАРУЖЕНИЯ</span>
+      </div>
+      <div class="intro-terminal-body" id="intro-terminal-body"></div>
+    </div>
+
+    <div class="floating-windows" id="floating-windows">
+      <!-- окна добавляются intro.js -->
+    </div>
+
+    <div class="holo-figure-wrap" id="holo-figure-wrap">
+      <canvas id="holo-figure" width="400" height="500"></canvas>
+      <div class="holo-tags" id="holo-tags">
+        <span class="holo-tag" style="--a:0deg">ФИЗИКА</span>
+        <span class="holo-tag" style="--a:60deg">ТЕХНИКА</span>
+        <span class="holo-tag" style="--a:120deg">МЫШЛЕНИЕ</span>
+        <span class="holo-tag" style="--a:180deg">КРЕАТИВ</span>
+        <span class="holo-tag" style="--a:240deg">СВЯЗИ</span>
+        <span class="holo-tag" style="--a:300deg">ПРОЕКТЫ</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- СТАДИЯ 04 — СХОЖДЕНИЕ / ПРОФИЛЬ ПОДТВЕРЖДЁН -->
+  <section class="intro-stage" data-stage="04" id="stage-04">
+    <div class="convergence-core" id="convergence-core">
+      <div class="conv-ring conv-ring--1"></div>
+      <div class="conv-ring conv-ring--2"></div>
+      <div class="conv-ring conv-ring--3"></div>
+      <div class="conv-center"></div>
+    </div>
+    <p class="intro-line intro-line--wide" data-text="ОПЕРАТОР ИДЕНТИФИЦИРОВАН"></p>
+    <p class="intro-line intro-line--brand" data-text="CORE.SINGL"></p>
+    <div class="confidence-bar-wrap">
+      <span class="intro-line--dim">УВЕРЕННОСТЬ ПРОФИЛЯ</span>
+      <div class="confidence-bar"><div class="confidence-fill" id="confidence-fill"></div></div>
+      <span class="confidence-pct" id="confidence-pct">0%</span>
+    </div>
+    <p class="intro-line intro-line--access" data-text="ДОСТУП РАЗРЕШЁН" id="access-granted"></p>
+  </section>
+
+  <!-- СТАДИЯ 05 — РАССЕИВАНИЕ ДАННЫХ (данные разлетаются вниз, к разделам) -->
+  <section class="intro-stage" data-stage="05" id="stage-05">
+    <div class="dispersal-core" id="dispersal-core">
+      <div class="conv-center"></div>
+    </div>
+    <div class="dispersal-shards" id="dispersal-shards"><!-- добавляются intro.js --></div>
+    <p class="intro-line intro-line--dim" style="margin-top:32px">ПОСТРОЕНИЕ ИНТЕРФЕЙСА...</p>
+  </section>
+
+</div>
+
+<!-- ============================================================
+     ГЛАВНЫЙ ИНТЕРФЕЙС — единая прокручиваемая HUD-страница
+     ============================================================ -->
+<div id="main-interface" class="main-interface" aria-hidden="true">
+
+  <header class="hud-header">
+    <div class="hud-header-brand">
+      <span class="hud-brand-name">CORE.SINGL</span>
+      <span class="hud-brand-sub">ПЕРСОНАЛЬНЫЙ ИНТЕРФЕЙС ОПЕРАТОРА</span>
+    </div>
+    <div class="hud-header-status">
+      <span class="status-dot"></span>
+      <span>СТАТУС: <strong id="hud-status">ОНЛАЙН</strong></span>
+      <span class="hud-sep">/</span>
+      <span>ЛОКАЦИЯ: <strong id="hud-location">КАЗАХСТАН</strong></span>
+    </div>
+    <button id="btn-terminal" class="hud-terminal-btn">ТЕРМИНАЛ</button>
+  </header>
+
+  <!-- HERO: ядро как переходная точка из интро, затем статично на фоне заголовка -->
+  <section class="hero-stage" id="hero-stage">
+    <canvas id="core-canvas"></canvas>
+    <div class="hero-label">
+      <span class="hero-label-eyebrow mono">СИСТЕМА АКТИВНА</span>
+      <span class="hero-label-name">CORE.SINGL</span>
+      <span class="hero-label-sub">ПЕРСОНАЛЬНЫЙ ИНТЕРФЕЙС ОПЕРАТОРА</span>
+    </div>
+    <div class="scroll-hint mono">▾ ЛИСТАЙ ВНИЗ — ДАННЫЕ ОПЕРАТОРА</div>
+  </section>
+
+  <main id="data-stream">
+    <!-- ================= PROFILE ================= -->
+    <section class="hud-section color-cyan" id="sec-profile" data-section="profile">
+      <div class="hud-section-inner hud-panel">
+        <div class="mp-eyebrow mono">01 · ПРОФИЛЬ</div>
+        <h2 class="mp-title" id="mp-profile-name">CORE</h2>
+        <p class="mp-section-label mono" id="mp-profile-id">SYSTEM ID · CORE.SINGL — КАЗАХСТАН</p>
+        <div class="mp-profile-quote" id="mp-profile-desc"></div>
+
+        <div class="mp-section">
+          <div class="mp-section-label mono">НАПРАВЛЕНИЯ</div>
+          <div class="mp-tag-row" id="mp-profile-focus"></div>
+        </div>
+
+        <div class="mp-profile-goal mono" id="mp-profile-goal"></div>
+        <p class="mp-text" id="mp-profile-note"></p>
+
+        <div class="mp-section">
+          <div class="mp-section-label mono">ИНТЕРЕСЫ</div>
+          <div class="mp-interest-grid" id="mp-profile-interests"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PERFORMANCE ================= -->
+    <section class="hud-section color-red" id="sec-performance" data-section="performance">
+      <div class="hud-section-inner hud-panel">
+        <div class="mp-eyebrow mono">02 · ПОКАЗАТЕЛИ</div>
+        <h2 class="mp-title">СИЛОВОЙ ПРОФИЛЬ</h2>
+
+        <div class="mp-stat-grid" id="mp-perf-stats"></div>
+
+        <div class="mp-section">
+          <div class="mp-section-label mono">ПОДЪЁМЫ</div>
+          <div class="mp-lift-grid" id="mp-perf-lifts"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SKILLS ================= -->
+    <section class="hud-section color-cyan" id="sec-skills" data-section="skills">
+      <div class="hud-section-inner hud-panel">
+        <div class="mp-eyebrow mono">03 · НАВЫКИ</div>
+        <h2 class="mp-title">НАБОР НАВЫКОВ</h2>
+        <p class="mp-section-label mono" id="mp-skill-levels"></p>
+        <div class="mp-section" id="mp-skills-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= COGNITIVE ================= -->
+    <section class="hud-section color-purple" id="sec-cognitive" data-section="cognitive">
+      <div class="hud-section-inner hud-panel">
+        <div class="mp-eyebrow mono">04 · КОГНИТИВНЫЙ ПРОФИЛЬ</div>
+        <h2 class="mp-title">ДАННЫЕ НАБЛЮДЕНИЯ AI</h2>
+        <div class="mp-section" id="mp-cognitive-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= ENGINEERING ================= -->
+    <section class="hud-section color-amber" id="sec-engineering" data-section="engineering">
+      <div class="hud-section-inner hud-panel">
+        <div class="mp-eyebrow mono">05 · ИНЖЕНЕРИЯ</div>
+        <h2 class="mp-title">ПОДВИЖНОЙ СОСТАВ</h2>
+        <p class="mp-section-label mono" id="mp-eng-sub">OPERATION &amp; MAINTENANCE</p>
+
+        <div class="mp-section">
+          <div class="mp-section-label mono">УЧЕБНОЕ ЗАВЕДЕНИЕ</div>
+          <p class="mp-text" id="mp-eng-institution"></p>
+        </div>
+
+        <div class="mp-section">
+          <div class="mp-section-label mono">СПЕЦИАЛЬНОСТЬ</div>
+          <p class="mp-text" id="mp-eng-specialty-ru"></p>
+          <p class="mp-text mp-text-dim" id="mp-eng-specialty-en"></p>
+        </div>
+
+        <div class="mp-section">
+          <div class="mp-section-label mono">СИСТЕМЫ</div>
+          <div class="mp-tag-row" id="mp-eng-systems"></div>
+        </div>
+
+        <div class="mp-section">
+          <div class="mp-section-label mono">МЕСТО ПРАКТИКИ</div>
+          <p class="mp-text" id="mp-eng-site"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= PROJECTS ================= -->
+    <section class="hud-section color-cyan" id="sec-projects" data-section="projects">
+      <div class="hud-section-inner hud-panel">
+        <div class="mp-eyebrow mono">06 · ПРОЕКТЫ</div>
+        <h2 class="mp-title">ФАЙЛЫ ПРОЕКТОВ</h2>
+        <div class="mp-section" id="mp-projects-list"></div>
+      </div>
+    </section>
+
+    <!-- ================= NETWORK ================= -->
+    <section class="hud-section color-green" id="sec-network" data-section="network">
+      <div class="hud-section-inner hud-panel">
+        <div class="mp-eyebrow mono">07 · СВЯЗИ</div>
+        <h2 class="mp-title">СВЯЗИ С ОПЕРАТОРОМ</h2>
+        <div class="mp-network-graph" id="mp-network-graph"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ТЕРМИНАЛ СИСТЕМЫ -->
+  <div class="sys-terminal-layer" id="sys-terminal-layer" aria-hidden="true">
+    <div class="sys-terminal-backdrop" id="sys-terminal-backdrop"></div>
+    <div class="sys-terminal" role="dialog" aria-modal="true" aria-label="Терминал системы">
+      <div class="sys-terminal-head">
+        <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
+        <span class="intro-terminal-title">ТЕРМИНАЛ СИСТЕМЫ</span>
+        <button class="module-panel-close" id="sys-terminal-close" aria-label="Закрыть терминал">✕</button>
+      </div>
+      <div class="sys-terminal-body" id="sys-terminal-body"></div>
+      <div class="sys-terminal-input-row">
+        <span class="sys-terminal-prompt">&gt;</span>
+        <input id="sys-terminal-input" class="sys-terminal-input" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="введите 'help'">
+      </div>
+    </div>
+  </div>
+
+  <footer class="hud-footer">
+    <span>CORE.SINGL © <span id="year"></span></span>
+    <span class="hud-footer-sep">·</span>
+    <span>ВСЕ СИСТЕМЫ В НОРМЕ</span>
+  </footer>
+
+</div>
+
+<!--
+  Фоновая музыка. Файл не входит в комплект — вставь свой mp3
+  (легально приобретённый/полученный трек). Сначала пробуется
+  assets/paranoid.mp3, затем assets/theme.mp3 как запасной вариант —
+  можно использовать любое из этих имён, что удобнее.
+  Пока файла нет, кнопка "МУЗЫКА" просто не будет ничего проигрывать —
+  сайт при этом не сломается.
+-->
+<audio id="bg-music" loop preload="none">
+  <source src="assets/paranoid.mp3" type="audio/mpeg">
+  <source src="assets/theme.mp3" type="audio/mpeg">
+</audio>
+
+<script src="data.js?v=10"></script>
+<script src="core.js?v=10"></script>
+<script src="intro.js?v=10"></script>
+<script src="modules.js?v=10"></script>
+<script src="terminal.js?v=10"></script>
+<script src="main.js?v=10"></script>
+</body>
+</html>
