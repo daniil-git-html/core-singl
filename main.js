@@ -126,6 +126,21 @@
 
     updateBtn();
 
+    // Останавливаем музыку, когда пользователь уходит со страницы —
+    // сворачивает браузер, переключает вкладку или закрывает сайт.
+    // Если это НЕ был явный ручной выкл (userToggledOff), при
+    // возвращении на вкладку музыка возобновляется сама.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        if (musicOn) audio.pause();
+      } else if (musicOn && !userToggledOff) {
+        audio.play().catch(() => {});
+      }
+    });
+    window.addEventListener('pagehide', () => {
+      audio.pause();
+    });
+
     // start() вызывается из стартовой кнопки интро — это и есть
     // пользовательский жест, разрешающий автовоспроизведение со звуком.
     return { start: attemptPlay };
