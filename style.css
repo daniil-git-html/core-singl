@@ -598,7 +598,14 @@ body.intro-done .main-interface { opacity: 1; pointer-events: auto; }
   padding: 20px;
   text-align: center;
 }
-#core-canvas { width: min(64vw, 380px); height: min(64vw, 380px); max-width: 380px; max-height: 380px; }
+#core-canvas {
+  /* Буфер рисования больше видимого ядра — даёт запас, чтобы glow,
+     кольца и эффекты не обрезались квадратной границей canvas. */
+  width: min(96vw, 560px);
+  height: min(96vw, 560px);
+  max-width: 560px;
+  max-height: 560px;
+}
 .hero-label {
   position: absolute;
   display: flex;

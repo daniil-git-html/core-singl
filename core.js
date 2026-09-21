@@ -208,15 +208,18 @@ const CoreFX = (() => {
       w = canvas.width = rect.width * dpr();
       h = canvas.height = rect.height * dpr();
       cx = w / 2; cy = h / 2;
-      radius = Math.min(w, h) * 0.22;
+      // Буфер даёт большой запас (см. CSS #core-canvas) — радиус ядра
+      // берём заметно меньше половины буфера, чтобы glow/орбитеры
+      // с большим запасом помещались и ничего не обрезалось краем canvas.
+      radius = Math.min(w, h) * 0.13;
       if (orbiters.length === 0) {
-        orbiters = Array.from({ length: 26 }, () => ({
+        orbiters = Array.from({ length: 22 }, () => ({
           angle: Math.random() * Math.PI * 2,
-          dist: radius * (1.3 + Math.random() * 1.1),
-          speed: (Math.random() * 0.4 + 0.15) * (Math.random() < 0.5 ? 1 : -1) * 0.01,
-          r: Math.random() * 1.6 + 0.6,
-          tilt: Math.random() * 0.6 - 0.3,
-          hue: Math.random() // для многоцветных орбитеров
+          dist: radius * (1.7 + Math.random() * 1.3),
+          speed: (Math.random() * 0.35 + 0.12) * (Math.random() < 0.5 ? 1 : -1) * 0.01,
+          r: Math.random() * 1.5 + 0.6,
+          tilt: Math.random() * 0.5 - 0.25,
+          hue: Math.random()
         }));
       }
     }
@@ -224,7 +227,7 @@ const CoreFX = (() => {
     let rot = 0;
     function frame() {
       requestAnimationFrame(frame);
-      if (!reducedMotion) rot += 0.0022;
+      if (!reducedMotion) rot += 0.0018;
       draw();
     }
 
@@ -235,6 +238,43 @@ const CoreFX = (() => {
 
     const accentColors = ['#00e5ff', '#ff3b4e', '#ffab2e', '#b26bff', '#2bffa8'];
 
+    // Гранёный кристалл в центре ("новый элемент") — треугольная
+    // призма из нескольких концентрических многоугольников с гранями,
+    // а не гладкая сфера. Оригинальная абстрактная форма.
+    function drawCrystal(R, r, g, b) {
+      const sides = 3; // треугольная огранка
+      const layers = [1, 0.62, 0.3];
+
+      layers.forEach((mult, li) => {
+        const rr = R * mult;
+        const spin = rot * (li % 2 === 0 ? 1 : -1) * (0.5 + li * 0.25);
+        ctx.beginPath();
+        for (let i = 0; i <= sides; i++) {
+          const a = spin + (i / sides) * Math.PI * 2 - Math.PI / 2;
+          const px = cx + Math.cos(a) * rr;
+          const py = cy + Math.sin(a) * rr;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = `rgba(${r},${g},${b},${0.55 - li * 0.1 + audioLevel * 0.25})`;
+        ctx.lineWidth = (1.3 - li * 0.2) * dpr();
+        ctx.stroke();
+
+        // грани — линии от вершин к центру, только на внешнем слое
+        if (li === 0) {
+          for (let i = 0; i < sides; i++) {
+            const a = spin + (i / sides) * Math.PI * 2 - Math.PI / 2;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(a) * rr, cy + Math.sin(a) * rr);
+            ctx.strokeStyle = `rgba(${r},${g},${b},${0.18 + audioLevel * 0.15})`;
+            ctx.lineWidth = 1 * dpr();
+            ctx.stroke();
+          }
+        }
+      });
+    }
+
     function draw() {
       ctx.clearRect(0, 0, w, h);
       const [r, g, b] = hexToRgb(coreState.color);
@@ -244,58 +284,57 @@ const CoreFX = (() => {
       const pulse = 1 + audioLevel * 0.22;
       const R = radius * pulse;
 
-      const grad = ctx.createRadialGradient(cx, cy, R * 0.2, cx, cy, R * 2.6);
-      grad.addColorStop(0, `rgba(${r},${g},${b},${0.28 + audioLevel * 0.14})`);
+      // Мягкое общее свечение вокруг ядра
+      const grad = ctx.createRadialGradient(cx, cy, R * 0.3, cx, cy, R * 3.2);
+      grad.addColorStop(0, `rgba(${r},${g},${b},${0.22 + audioLevel * 0.12})`);
       grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, w, h);
 
-      [1, 1.55, 2.1].forEach((mult, i) => {
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(rot * (i % 2 === 0 ? 1 : -1) * (0.6 + i * 0.15));
-        ctx.scale(1, 0.35 + i * 0.08);
-        ctx.beginPath();
-        ctx.arc(0, 0, R * mult, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(${r},${g},${b},${0.5 - i * 0.13 + audioLevel * 0.2})`;
-        ctx.lineWidth = (1.2 + audioLevel * 1.4) * dpr();
-        ctx.stroke();
-        ctx.restore();
-      });
+      // Единственное тонкое кольцо-стабилизатор вокруг кристалла
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate(rot * 0.4);
+      ctx.scale(1, 0.32);
+      ctx.beginPath();
+      ctx.arc(0, 0, R * 2.1, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(${r},${g},${b},${0.32 + audioLevel * 0.15})`;
+      ctx.lineWidth = (1 + audioLevel * 1.1) * dpr();
+      ctx.stroke();
+      ctx.restore();
 
-      // многоцветные орбитеры (визуально разнообразнее чисто-синего)
+      // Многоцветные частицы на безопасном расстоянии от края буфера
       for (const o of orbiters) {
-        if (!reducedMotion) o.angle += o.speed * (1 + audioLevel * 1.5);
-        const dist = o.dist * (1 + audioLevel * 0.12);
+        if (!reducedMotion) o.angle += o.speed * (1 + audioLevel * 1.4);
+        const dist = o.dist * (1 + audioLevel * 0.1);
         const ex = cx + Math.cos(o.angle) * dist;
-        const ey = cy + Math.sin(o.angle) * dist * 0.4 + Math.sin(o.angle * 2) * o.tilt * R * 0.3;
+        const ey = cy + Math.sin(o.angle) * dist * 0.34 + Math.sin(o.angle * 2) * o.tilt * R * 0.25;
         const [ar, ag, ab] = hexToRgb(accentColors[Math.floor(o.hue * accentColors.length)]);
         ctx.beginPath();
         ctx.fillStyle = `rgba(${ar},${ag},${ab},${0.75 + audioLevel * 0.2})`;
-        ctx.arc(ex, ey, (o.r + audioLevel * 1.2) * dpr(), 0, Math.PI * 2);
+        ctx.arc(ex, ey, (o.r + audioLevel * 1.1) * dpr(), 0, Math.PI * 2);
         ctx.fill();
       }
 
-      const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R);
+      // Гранёный кристалл — "новый элемент" вместо гладкой сферы
+      drawCrystal(R, r, g, b);
+
+      // Яркое ядро-сердцевина внутри кристалла
+      const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 0.55);
       coreGrad.addColorStop(0, `rgba(255,255,255,0.95)`);
-      coreGrad.addColorStop(0.35, `rgba(${r},${g},${b},0.85)`);
+      coreGrad.addColorStop(0.4, `rgba(${r},${g},${b},0.85)`);
       coreGrad.addColorStop(1, `rgba(${r},${g},${b},0)`);
       ctx.beginPath();
       ctx.fillStyle = coreGrad;
-      ctx.arc(cx, cy, R, 0, Math.PI * 2);
+      ctx.arc(cx, cy, R * 0.55, 0, Math.PI * 2);
       ctx.fill();
 
+      // Сканирующая линия, ограниченная безопасной зоной внутри буфера
+      const scanY = cy + Math.sin(rot * 1.3) * R * 1.6;
       ctx.beginPath();
-      ctx.arc(cx, cy, R * 0.55, 0, Math.PI * 2);
-      ctx.strokeStyle = `rgba(255,255,255,0.5)`;
-      ctx.lineWidth = 1 * dpr();
-      ctx.stroke();
-
-      const scanY = cy + Math.sin(rot * 1.3) * R * 1.8;
-      ctx.beginPath();
-      ctx.moveTo(cx - R * 2.2, scanY);
-      ctx.lineTo(cx + R * 2.2, scanY);
-      ctx.strokeStyle = `rgba(${r},${g},${b},0.12)`;
+      ctx.moveTo(cx - R * 1.9, scanY);
+      ctx.lineTo(cx + R * 1.9, scanY);
+      ctx.strokeStyle = `rgba(${r},${g},${b},0.1)`;
       ctx.lineWidth = 1 * dpr();
       ctx.stroke();
     }
