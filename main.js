@@ -57,7 +57,7 @@
     const btn = document.getElementById('btn-music');
     if (!audio || !btn) return { start: () => {} };
 
-    audio.volume = 0.35;
+    audio.volume = 0.12;
     let musicOn = false;
     let userToggledOff = false; // явный отказ пользователя — не запускать снова автоматически
     let analyserSetUp = false;
