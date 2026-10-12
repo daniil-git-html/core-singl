@@ -115,6 +115,7 @@ const Modules = (() => {
         </div>
         <p class="mp-project-desc">${p.desc}</p>
         <div class="mp-tag-row">${p.tech.map(t => tag(t)).join('')}</div>
+        ${p.team ? `<p class="mp-project-team mono">КОМАНДА: ${p.team.join(' · ')}</p>` : ''}
         <a class="mp-project-link mono" href="${p.link}" target="_blank" rel="noopener">
           <span>${p.linkLabel}</span><span class="mp-project-link-arrow">→</span>
         </a>

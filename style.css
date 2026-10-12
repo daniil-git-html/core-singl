@@ -965,3 +965,4 @@ body.intro-done .scan-progress { opacity: 1; }
   padding: 10px 22px;
   background: rgba(5,10,18,0.6);
 }
+.mp-project-team{margin-top:12px;font-size:10px;letter-spacing:.08em;color:var(--text-dim)}

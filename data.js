@@ -135,6 +135,17 @@ const CORE_DATA = {
       tech: ["FIREBASE", "REALTIME", "HUD UI"],
       linkLabel: "ОТКРЫТЬ ПРОЕКТ",
       link: "https://daniil-git-html.github.io/corequiz-daniil/#/"
+    },
+    {
+      id: "newrail",
+      name: "NEWRAIL",
+      status: "ПРОТОТИП",
+      statusColor: "amber",
+      desc: "Цифровой журнал и паспорт локомотивов для депо. У каждого локомотива есть карточка с узлами, историей ТО и ремонтов, неисправностями с фото и QR-кодом, который ведёт на его страницу. Цепочка: электровоз, рейс, неисправность, ремонт, история. Создан командой на ALT TRANSPORT HACKATHON 2026. Сейчас работает на демо-данных: вход и роли упрощены.",
+      tech: ["FIREBASE", "GITHUB PAGES", "JS"],
+      team: ["Буйленков Даниил", "Голубятников Никита", "Черный Богдан"],
+      linkLabel: "ОТКРЫТЬ ПРОЕКТ",
+      link: "https://newrail-project.github.io/rail-hackathon/"
     }
   ],
 
