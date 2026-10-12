@@ -12,6 +12,17 @@ const CoreFX = (() => {
   let reducedMotion = false;
   const dpr = () => Math.min(window.devicePixelRatio || 1, 2);
 
+  const onScreen = new WeakMap();
+  function watchVisibility(el) {
+    onScreen.set(el, true);
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(entries => {
+        entries.forEach(e => onScreen.set(e.target, e.isIntersecting));
+      }).observe(el);
+    }
+    return () => onScreen.get(el) !== false;
+  }
+
   function setReducedMotion(v) { reducedMotion = v; }
 
   // Уровень баса музыки (0..1), обновляется из main.js через Web Audio
@@ -29,6 +40,7 @@ const CoreFX = (() => {
   function initBackground() {
     const canvas = document.getElementById('bg-canvas');
     const ctx = canvas.getContext('2d');
+    const shown = watchVisibility(canvas);
     let w, h, particles = [];
 
     function resize() {
@@ -36,7 +48,7 @@ const CoreFX = (() => {
       h = canvas.height = window.innerHeight * dpr();
       canvas.style.width = window.innerWidth + 'px';
       canvas.style.height = window.innerHeight + 'px';
-      const count = Math.min(70, Math.floor((window.innerWidth * window.innerHeight) / 22000));
+      const count = Math.min(window.innerWidth < 700 ? 30 : 70, Math.floor((window.innerWidth * window.innerHeight) / 22000));
       particles = Array.from({ length: count }, () => spawnParticle());
     }
 
@@ -55,6 +67,7 @@ const CoreFX = (() => {
     let last = 0;
     function frame(t) {
       requestAnimationFrame(frame);
+      if (!shown()) return;
       if (reducedMotion) { draw(); return; }
       if (t - last < 33) return;
       last = t;
@@ -97,6 +110,7 @@ const CoreFX = (() => {
     const canvas = document.getElementById('blueprint-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const shown = watchVisibility(canvas);
     let w, h;
 
     function resize() {
@@ -200,6 +214,7 @@ const CoreFX = (() => {
     const canvas = document.getElementById('core-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const shown = watchVisibility(canvas);
     let w, h, cx, cy, radius;
     let orbiters = [];
 
@@ -227,6 +242,7 @@ const CoreFX = (() => {
     let rot = 0;
     function frame() {
       requestAnimationFrame(frame);
+      if (!shown()) return;
       if (!reducedMotion) rot += 0.0018;
       draw();
     }
@@ -351,6 +367,7 @@ const CoreFX = (() => {
     const canvas = document.getElementById('holo-figure');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const shown = watchVisibility(canvas);
     let w, h;
 
     function resize() {
@@ -384,6 +401,7 @@ const CoreFX = (() => {
     let t = 0;
     function frame() {
       requestAnimationFrame(frame);
+      if (!shown()) return;
       if (!reducedMotion) t += 0.016;
       draw();
     }
@@ -461,6 +479,7 @@ const CoreFX = (() => {
     const canvas = document.getElementById('trail-canvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    const shown = watchVisibility(canvas);
     let w, h, particles = [];
     let lastX = null, lastY = null;
 
@@ -498,6 +517,7 @@ const CoreFX = (() => {
 
     function frame() {
       requestAnimationFrame(frame);
+      if (!shown()) return;
       ctx.clearRect(0, 0, w, h);
       if (particles.length === 0) return;
       for (let i = particles.length - 1; i >= 0; i--) {
